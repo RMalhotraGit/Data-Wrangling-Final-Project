@@ -1,0 +1,31 @@
+---
+title: "01-report"
+author: "Rahul Malhotra"
+date: "4/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+```
+
+# source files
+```{r}
+source("data.R")
+```
+
+```{r}
+world
+```
+
+```{r}
+library()
+```
+
+```{r}
+
+```
