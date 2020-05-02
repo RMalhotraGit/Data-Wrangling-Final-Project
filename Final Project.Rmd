@@ -15,8 +15,13 @@ rm(list = ls())
 
 # source files
 ```{r}
-#source("world.R")
-source("us.R")
+source("Datasets/world.R")
+source("Datasets/us.R")
+source("Datasets/nj.R")
+```
+
+```{r}
+library(stringr)
 ```
 
 ```{r}
@@ -24,7 +29,21 @@ us
 ```
 
 ```{r}
-library()
+us
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+world
+```
+
+```{r}
+nj
 ```
 
 ```{r}
