@@ -1,0 +1,32 @@
+---
+title: "Final Project"
+author: "Rahul Malhotra"
+date: "4/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+```
+
+# source files
+```{r}
+#source("world.R")
+source("us.R")
+```
+
+```{r}
+us
+```
+
+```{r}
+library()
+```
+
+```{r}
+
+```
