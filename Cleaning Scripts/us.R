@@ -35,3 +35,9 @@ for (i in 1:length(numCols.us)) {
   us <- numCleaner(us, numCols.us[i], ",")
   us <- numCleaner(us, numCols.us[i], "\\+")
 }
+
+# change NA values to 0
+us[is.na(us)] <- 0
+
+# reassinging id values to account for removed rows
+rownames(us) <- seq(1, dim(us)[1])

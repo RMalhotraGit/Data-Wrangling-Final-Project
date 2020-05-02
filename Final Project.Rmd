@@ -6,30 +6,50 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r}
 rm(list = ls())
 ```
 
-# source files
-```{r}
-source("Datasets/world.R")
-source("Datasets/us.R")
-source("Datasets/nj.R")
+```{r message = FALSE}
+library(knitr)
+library(dplyr)
+```
+
+```{r message = FALSE, warning = FALSE}
+source("Cleaning Scripts/world.R")
+source("Cleaning Scripts/us.R")
+source("Cleaning Scripts/nj.R")
 ```
 
 ```{r}
-library(stringr)
+# Saving tidy version of datasets as csv files
+
+#write.csv(world, "Datasets/world.csv", row.names = TRUE)
+#write.csv(us, "Datasets/us.csv", row.names = TRUE)
+#write.csv(nj, "Datasets/nj.csv", row.names = TRUE)
+```
+
+# Let's first take a small look into our datasets
+
+# World Data
+```{r}
+kable(select(world, `Country,Other`, TotalCases, TotalDeaths)[1:5,])
+```
+
+# United States Data
+```{r}
+kable(select(us, USAState, TotalCases, TotalDeaths)[1:5,])
+```
+
+# New Jersey Data
+```{r}
+kable(select(nj, County, TotalCases, TotalDeaths)[1:5,])
 ```
 
 ```{r}
-us
-```
-
-```{r}
-us
 ```
 
 ```{r}
@@ -38,14 +58,3 @@ us
 ```{r}
 ```
 
-```{r}
-world
-```
-
-```{r}
-nj
-```
-
-```{r}
-
-```

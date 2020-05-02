@@ -22,3 +22,9 @@ for (i in 1:length(numCols.nj)) {
   nj <- numCleaner(nj, numCols.nj[i], ",")
   nj <- numCleaner(nj, numCols.nj[i], "\\+")
 }
+
+# change NA values to 0
+nj[is.na(nj)] <- 0
+
+# reassinging id values to account for removed rows
+rownames(nj) <- seq(1, dim(nj)[1])

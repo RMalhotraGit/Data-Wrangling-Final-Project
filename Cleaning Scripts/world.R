@@ -26,3 +26,9 @@ for (i in 1:length(numCols.world)) {
   world <- numCleaner(world, numCols.world[i], ",")
   world <- numCleaner(world, numCols.world[i], "\\+")
 }
+
+# change NA values to 0
+world[is.na(world)] <- 0
+
+# reassinging id values to account for removed rows
+rownames(world) <- seq(1, dim(world)[1])
