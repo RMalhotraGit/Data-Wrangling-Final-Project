@@ -8,3 +8,10 @@ numCleaner <- function(df, colname, string) {
     as.numeric()
   return(df)
 }
+
+# function to generate a basic linear model for predicting number of deaths based on number of cases
+# (assumes the dataframe has 'TotalDeaths' and 'TotalCases' variables)
+lm.deaths <- function(df) {
+  model <- lm(TotalDeaths ~ TotalCases, data = df)
+  return(model)
+}
