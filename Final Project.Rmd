@@ -74,19 +74,19 @@ kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases))
 We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus.
 Note: Only countries with more than 500 total cases were considered.
 
-# Predicting Number of Deaths
+# Now let's look at which are doing the worst
 ```{r}
-lm.deaths <- function(df) {
-  # extracting variables as vectors
-  #deaths <- df["TotalDeaths"]
-  model <- lm(TotalDeaths~ TotalCases, data = df)
-  return(model)
-}
+deathRate <- world %>%
+  filter(TotalCases > 500) %>% # adding a filter to on our data
+  group_by(`Country,Other`, TotalCases) %>%
+  summarize(DeathRate = TotalDeaths/TotalCases) %>%
+  arrange(desc(DeathRate)) %>%
+  head(10)
+
+deathRate
 ```
 
-```{r}
-lm.mod <- lm.deaths(world)
-coefficients(lm.mod)
-```
-Using a naive approach, we construct a univariate linear model where the response is the total number of deaths and the predictor is the total number of cases. Looking at the coefficient for the total cases, we see it is about 0.06. That is, for every new case, we expect the number of deaths to increase by 0.06. In other words, we can say that the death rate is around 6%. However, let's compare this to the average death rate.
+Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases.
+
+
 
