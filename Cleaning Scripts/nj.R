@@ -28,6 +28,3 @@ nj[is.na(nj)] <- 0
 
 # reassinging id values to account for removed rows
 rownames(nj) <- seq(1, dim(nj)[1])
-
-# create a death rate variable
-nj$DeathRate <- nj$TotalDeaths/nj$TotalCases

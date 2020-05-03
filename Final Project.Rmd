@@ -2,7 +2,7 @@
 title: "Final Project"
 author: "Rahul Malhotra"
 date: "4/22/2020"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -15,6 +15,7 @@ rm(list = ls())
 
 ```{r message = FALSE}
 library(knitr)
+library(tidyr)
 library(dplyr)
 ```
 
@@ -22,6 +23,8 @@ library(dplyr)
 source("Cleaning Scripts/world.R")
 source("Cleaning Scripts/us.R")
 source("Cleaning Scripts/nj.R")
+source("Cleaning Scripts/bergen.R")
+source("functions.R")
 ```
 
 ```{r}
@@ -30,9 +33,10 @@ source("Cleaning Scripts/nj.R")
 #write.csv(world, "Datasets/world.csv", row.names = TRUE)
 #write.csv(us, "Datasets/us.csv", row.names = TRUE)
 #write.csv(nj, "Datasets/nj.csv", row.names = TRUE)
+#write.csv(bergen, "Datasets/bergen.csv", row.names = TRUE)
 ```
 
-# Let's first take a small look into our datasets
+# Let's first take a small look into our datasets:
 
 # World Data
 ```{r}
@@ -49,12 +53,40 @@ kable(select(us, USAState, TotalCases, TotalDeaths)[1:5,])
 kable(select(nj, County, TotalCases, TotalDeaths)[1:5,])
 ```
 
+# Bergen County, NJ Data
 ```{r}
+kable(select(bergen, `City/Town`, TotalCases)[1:5,])
+```
+
+# First, let's focus on the World data set
+# Let's see which countries are recovering the best
+```{r}
+recovered <- world %>%
+  filter(TotalCases > 500) %>%  # adding a filter on our data
+  group_by(`Country,Other`, TotalCases) %>%
+  summarize(RecoveryRate = TotalRecovered/TotalCases) %>% # use recovery rate for a better measure
+  arrange(desc(RecoveryRate)) %>%
+  head(10)
+
+kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases))
+```
+
+We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus.
+Note: Only countries with more than 500 total cases were considered.
+
+# Predicting Number of Deaths
+```{r}
+lm.deaths <- function(df) {
+  # extracting variables as vectors
+  #deaths <- df["TotalDeaths"]
+  model <- lm(TotalDeaths~ TotalCases, data = df)
+  return(model)
+}
 ```
 
 ```{r}
+lm.mod <- lm.deaths(world)
+coefficients(lm.mod)
 ```
-
-```{r}
-```
+Using a naive approach, we construct a univariate linear model where the response is the total number of deaths and the predictor is the total number of cases. Looking at the coefficient for the total cases, we see it is about 0.06. That is, for every new case, we expect the number of deaths to increase by 0.06. In other words, we can say that the death rate is around 6%. However, let's compare this to the average death rate.
 

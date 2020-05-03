@@ -32,6 +32,3 @@ world[is.na(world)] <- 0
 
 # reassinging id values to account for removed rows
 rownames(world) <- seq(1, dim(world)[1])
-
-# create a death rate variable
-world$DeathRate <- world$TotalDeaths/world$TotalCases
