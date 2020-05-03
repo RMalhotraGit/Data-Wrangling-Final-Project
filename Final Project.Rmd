@@ -36,7 +36,7 @@ source("functions.R")
 #write.csv(bergen, "Datasets/bergen.csv", row.names = TRUE)
 ```
 
-# Let's first take a small look into our datasets:
+# Coronavirus Data Broken Down by Various Regions:
 
 ## World Data
 ```{r}
@@ -58,48 +58,70 @@ kable(select(nj, County, TotalCases, TotalDeaths)[1:5,])
 kable(select(bergen, `City/Town`, TotalCases)[1:5,])
 ```
 
-# First, let's focus on the World data set
-## Let's see which countries are recovering the best
+## Top 10 Recovery Rate (by Country)
 ```{r}
 recovered <- world %>%
   filter(TotalCases > 500) %>%  # adding a filter on our data
   group_by(`Country,Other`, TotalCases) %>%
   summarize(RecoveryRate = TotalRecovered/TotalCases) %>% # use recovery rate for a better measure
-  arrange(desc(RecoveryRate)) %>%
-  head(10)
+  arrange(desc(RecoveryRate))
 
-kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases))
+kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases)[1:10,])
 ```
 
 We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus.
 Note: Only countries with more than 500 total cases were considered.
 
-## Now let's look at which are doing the worst
+## Top 10 Death Rate (by Country)
 ```{r}
 deathRate <- world %>%
   filter(TotalCases > 500) %>% # adding a filter to on our data
   group_by(`Country,Other`, TotalCases) %>%
   summarize(DeathRate = TotalDeaths/TotalCases) %>%
-  arrange(desc(DeathRate)) %>%
-  head(10)
+  arrange(desc(DeathRate))
 
-kable(select(deathRate, `Country,Other`, DeathRate, TotalCases))
+kable(select(deathRate, `Country,Other`, DeathRate, TotalCases)[1:10,])
 ```
 
 Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases.
+Note: Only countries with more than 500 total cases were considered.
 
 ## Predicting Number of Deaths
+
+### First, we look at all countries:
 ```{r}
-lm.mod <- lm.deaths(world)
-coefficients(lm.mod)
+lm.world <- lm.deaths(world)
+coefficients(lm.world)
 ```
 
-Using a naive approach, we construct a univariate linear model where the response is the total number of deaths and the predictor is the total number of cases. Looking at the coefficient for the total cases, we see it is about 0.064. That is, for every new case, we expect the number of deaths to increase by 0.064. In other words, we can say that the death rate is around 6%. However, let's get the death rate for each country, and compare its average to this value.
+Using a naive approach, we construct a univariate linear model where the response is the total number of deaths and the predictor is the total number of cases. Looking at the coefficient for the total cases, we see it is about 0.064. That is, for every new case, we expect the number of deaths to increase by 0.064. In other words, we can say that the death rate is around 6.4%. However, let's get the death rate for each country, and compare its average to this value.
 
 ```{r}
-AverageDeathRate <- mean(deathRate$DeathRate)
-print <- paste(c("The average death rate among all countries is", AverageDeathRate), sep = " ")
+AverageDeathRate.world <- mean(deathRate$DeathRate)
+print <- paste(c("The average death rate among all countries is", AverageDeathRate.world), sep = " ")
 cat(print)
 ```
 
-Taking the average of the death rate among all countries, we see that is about 0.126, which is about double the coefficient we got in our linear model. We should expect a disparity in the two values since the linear model only considers the number of cases as a predictor. There are likely several other characteristics within a country that play a role in determining the number of deaths a country will have, namely those having to do with that country's health care and ability to treat those who have been affected.
+Taking the average of the death rate among all countries, we see that is about 0.04, which is about two-thirds the value of the coefficient we got in our linear model. We should expect a disparity in the two values since the linear model only considers the number of cases as a predictor. There are likely several other characteristics within a country that play a role in determining the number of deaths a country will have, namely those having to do with that country's health care and ability to treat those who have been affected.
+
+### Now let's look at just the United States
+
+```{r}
+lm.us <- lm.deaths(us)
+coefficients(lm.us)
+```
+
+We get the coefficient for the total cases to be about 0.074 which implies that for every new case in the United States, we expect the number of deaths to increase by about 0.074, that is a death rate of 7.4%. This value is about 0.01 greater than the coefficient for the model for all countries. Now, let's compare this value to the United State's actual death rate.
+
+```{r}
+USA <- world %>%
+  filter(`Country,Other` == "USA")
+print <- paste(c("The average death rate among all countries is", USA$TotalDeaths/USA$TotalCases), sep = " ")
+cat(print)
+```
+
+Again, we see that the actual death rate is lower than the estimated one we obtained from the linear regression model, likely due to other covariates playing a role in the number of cases that result in death.
+
+### Conclusion
+
+While we found that the United States is not among the top 10 countries with the highest death rate, we do see that it does have a higher death rate, both in actuality and by our regression model, than compared to the world average. This shows the severity of the pandemic in the country, as well as the country's lack of preparedness for the virus, despite being a superpower.
