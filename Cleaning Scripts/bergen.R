@@ -23,7 +23,7 @@ endIndex <- startIndex + 69
 bergen <- bergen[startIndex:endIndex]
 
 # separate city/town and the number of cases
-bergen <- separate(as.data.frame(bergen), bergen, c("City/Town", "Cases"), sep = ":")
+bergen <- separate(as.data.frame(bergen), bergen, c("City/Town", "TotalCases"), sep = ":")
 
 # remove * that appears in some of the city/town names
 bergen$`City/Town` <- bergen$`City/Town` %>%

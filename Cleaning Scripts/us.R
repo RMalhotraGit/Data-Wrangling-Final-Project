@@ -41,3 +41,6 @@ us[is.na(us)] <- 0
 
 # reassinging id values to account for removed rows
 rownames(us) <- seq(1, dim(us)[1])
+
+# create a death rate variable
+us$DeathRate <- us$TotalDeaths/us$TotalCases
