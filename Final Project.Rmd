@@ -3,6 +3,9 @@ title: "Final Project"
 author: "Rahul Malhotra"
 date: "4/22/2020"
 output: pdf_document
+header-includes:
+  - \setlength{\parindent}{4em}
+  - \setlength{\parskip}{0em}
 ---
 
 ```{r setup, include=FALSE}
@@ -41,23 +44,41 @@ source("functions.R")
 
 ## World Data
 ```{r}
-kable(select(world, `Country,Other`, TotalCases, TotalDeaths)[1:5,])
+kable(select(world, `Country,Other`, TotalCases, NewCases, TotalDeaths, NewDeaths, TotalRecovered, ActiveCases)[1:5,])
 ```
 
 ## United States Data
 ```{r}
-kable(select(us, USAState, TotalCases, TotalDeaths)[1:5,])
+kable(select(us, USAState, TotalCases, NewCases, TotalDeaths, NewDeaths, ActiveCases)[1:5,])
 ```
 
 ## New Jersey Data
 ```{r}
-kable(select(nj, County, TotalCases, TotalDeaths)[1:5,])
+kable(select(nj, County, TotalCases, NewCases, TotalDeaths, NewDeaths, ActiveCases)[1:5,])
 ```
 
 ## Bergen County, NJ Data
 ```{r}
 kable(select(bergen, `City/Town`, TotalCases)[1:5,])
 ```
+
+*Some columns are omitted from this output of the table.
+
+## Motivation
+|      The four datasets I chose all have to due with coronavirus data and are subsets of each other. Each one narrows the data down to a location that is within the one before it. The reaosn I chose these datasets is because I live in Bergen County and wanted to explore the severity of the situation, from a data-driven perspective. Bergen County was actually the first county in New Jersey to report a positive case. The town I live in, Dumont, has not been as much of a hot spot as other towns, but the first few cases in New Jersey had been from towns very close to me, such as Teaneck. Bergen County has drastically lead the state for the number of cases and I want to see how things have or have not changed in the towns I live by.
+
+## Data Scraping and Cleaning
+
+### worldometers.info data
+|      The first three datasets were scraped from the https://www.worldometers.info/coronavirus/ website. Luckily, this website offers the data in a tabular format, so scraping it wasn't too much of a challenge. However, the table it has for the world data does not just include countries. It also contains an entry for the Diamond Princess cruise ship, we well as a total count so I had to go through manually and look for entries I wanted to remove. A similar approach was used for the United States data.
+|      The next major cleaning process involved converting the variables (other than location) from a character representation to a numeric. When initially scraped, these values contain commas and some contain plus signs (to indicate the new daily gain of cases and deaths). To fix these, I created a function called "numCleaner" which takes in a database, a column of that database, and a string. The function goes through each value in that column and replaces all instances of the passed in string to a blank space, removing it. I did this so I could reuse this function for each dataset and for both commas and plus signs. One difficulty I came across was passing to the function only the columns with numeric values, since if say, the country column, was passed into the function, it would change each row to NA. To remedy this, I created a vector of strings for each dataset with the column names that were to be passed into the function. Another problem I encountered was getting an error when trying to remove the plus signs. After some research, I found out that '+' is a special character in regex and needs to be escaped so instead of simply passing "+" into my function, I had to pass "\\\\+" instead.
+|      The last bit of cleaning involved changing any numeric NA values to 0, which there were many of due to how the data is written on the website. For example, if a country has no new deaths, or the value has not yet been updated, the entry is left blank, instead of being 0. Luckily, the function I created to change the columns to numerics converts these blank entries to NA. This made it easy to then just convert every NA value to 0. However, I noticed that on the website, for the UK and Netherlands, the "TotalRecovered" column is always labeled "N/A". I believe this is because they have reported they will no longer report this statistic because they feel that the reports given by China are not accurate.
+
+### insidernj.com data
+|      To scrape the data for the towns and cities within Bergen County was much more challenging compared to the other datasets. The original source, and several others, I planned on using had no html table or path available when using SelectorGadget. I found other sources that had the data in a table that could be scraped but had a "Show More" option at the end. So when I loaded the data into R, it only showed some of the cities and towns from the full table and I was unable to find a way to get all the data.
+|      I finally was able to find data at https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/ which is a news article containing the number of cases for each town and city in Bergen County. However, the data was not stored as a table, however I found a node labeled "p" using SelectorGadget which gave each sentence in the article as a entry into a character vector. So now, what I had was a vector where the first few entries were some text, followed by lines containing the information I wanted as: "City/Town: Cases", and then some more text. What I noticed was that the reported cases was given in alphabetical order, so my approach was to find the index of the first city or town, which happened to be Allendale. Then, I got the index of the last city or town by adding 69 to this value (since there are a total of 70 cities and towns in Bergen County).
+|      I now had a vector of the cities and towns but needed to get this into a data frame. To do so, I made use of the separate function, passing in the vector as a data frame, since the city or town is separated from the number of cases in each by a colon, ":". Having the data separated into columns, I was mostly done. The last couple of steps involved using the "str_replace_all" to get rid of the "*" which sometimes appears in the "City/Town" column, and then converting the cases column from a character type to a numeric.
+
 
 ## Top 10 Recovery Rate (by Country)
 ```{r}
@@ -70,8 +91,8 @@ recovered <- world %>%
 kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases)[1:10,])
 ```
 
-We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus.
-Note: Only countries with more than 500 total cases were considered.
+|      We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus. 
+*Note: Only countries with more than 500 total cases were considered.
 
 ## Top 10 Death Rate (by Country)
 ```{r}
@@ -84,8 +105,8 @@ deathRate <- world %>%
 kable(select(deathRate, `Country,Other`, DeathRate, TotalCases)[1:10,])
 ```
 
-Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases.
-Note: Only countries with more than 500 total cases were considered.
+|      Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases.
+*Note: Only countries with more than 500 total cases were considered.
 
 ## Predicting Number of Deaths
 
@@ -125,7 +146,7 @@ Again, we see that the actual death rate is lower than the estimated one we obta
 
 ### Conclusion
 
-While we found that the United States is not among the top 10 countries with the highest death rate, we do see that it does have a higher death rate, both in actuality and by our regression model, than compared to the world average. This shows the severity of the pandemic in the country, as well as the country's lack of preparedness for the virus, despite being a superpower.
+|      While we found that the United States is not among the top 10 countries with the highest death rate, we do see that it does have a higher death rate, both in actuality and by our regression model, than compared to the world average. This shows the severity of the pandemic in the country, as well as the country's lack of preparedness for the virus, despite being a superpower.
 
 ## Creating Choroplethr Maps
 
@@ -140,7 +161,7 @@ country_choropleth(world.choro.cases,
                    legend = "Number of Cases",
                    num_colors = 8)
 ```
-One interesting thing I just noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
+|      One interesting thing I just noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
 
 ### United States
 ```{r}
@@ -152,9 +173,27 @@ us.choro.cases <- us.choro %>%
 
 state_choropleth(us.choro.cases,
                  title = "Confirmed Cases of COVID-19 (United States)",
-                 legend = "Number of Cases",
+                 legend = "Total Number of Cases",
                  num_colors = 8)
 ```
+
+|      Looking at the total number of cases in the United States, we can see that some of the states with the most cases are those near the coasts. This could make sense since when people travel into America from foreign countries, they usually tend to go to these coasts. If we looked at an earlier version of this map, say in March, we might see this pattern be more apparent and would indicate where the virus started in the US. However, now, it is more likely that the states with the most cases are likely those with the highest populations. Let's take a look at this by looking at the number of cases per capita.
+
+```{r}
+# getting the cases per capita and creating a choroplethr
+us.choro.cases <- us.choro %>%
+  select(USAState, CasesPerMillion) %>%
+  dplyr::rename(region = USAState, value = CasesPerMillion)
+
+
+state_choropleth(us.choro.cases,
+                 title = "Confirmed Cases of COVID-19 (United States)",
+                 legend = "Number of Cases (Per 1 Million People)",
+                 num_colors = 8)
+```
+
+|      When we adjust the number of cases to be per capita we can see that it is the highest in the northeastern region of the country. Even states like New York, which have a relatively large population, still show the highest number of cases per capita. Also, it is interesting to see how many of the states with a higher number of cases per capita are concentrated in this area. This might suggest how the virus does spread exponentially, especially in a region where there is a lot of travel and interaction.
+|      One difficulty I had with creating this choroplethr, that seemed more of an issue with R, was the name of the column for the number of cases per 1 million people. Originally, the name of the column was "Tot Cases/1M pop" but when I tried to pass this name into the "dplyr" rename function, it would not work. I tried `Tot Cases/1M pop` and `Tot Cases/1M pop` as well and neither worked. I think this may have happened because the website used some kind of formatting for the space in between "Tot" and "Cases/1M", so to fix this, I renamed the column to "CasesPerMillion" in the choroplethr version of the dataset.
 
 
 

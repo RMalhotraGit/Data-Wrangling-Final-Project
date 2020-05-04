@@ -47,3 +47,6 @@ us.choro <- us
 
 # change to lower case
 us.choro$USAState <- tolower(us.choro$USAState)
+
+# change name from "Tot Cases/1M Pop" to "CasesPerMillion" since R cannot understand the former
+names(us.choro)[(grepl("Cases/1M", names(us.choro)))] <- "CasesPerMillion"

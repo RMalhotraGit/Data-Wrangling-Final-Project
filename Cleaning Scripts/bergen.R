@@ -3,8 +3,8 @@ library(tidyr)
 library(dplyr)
 
 # scraping bergen county data
-url <- "https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/"
-bergen <- url %>%
+bergen_url <- "https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/"
+bergen <- bergen_url %>%
   read_html() %>%
   html_nodes("p") %>%
   html_text()
@@ -28,3 +28,6 @@ bergen <- separate(as.data.frame(bergen), bergen, c("City/Town", "TotalCases"), 
 # remove * that appears in some of the city/town names
 bergen$`City/Town` <- bergen$`City/Town` %>%
   str_replace_all("\\*", "")
+
+# convert cases from character type to numeric
+bergen$TotalCases <- bergen$TotalCases %>% as.numeric()
