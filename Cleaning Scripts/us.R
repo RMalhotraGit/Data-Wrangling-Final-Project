@@ -41,3 +41,9 @@ us[is.na(us)] <- 0
 
 # reassinging id values to account for removed rows
 rownames(us) <- seq(1, dim(us)[1])
+
+# CHOROPLETHR VERSION OF DATA
+us.choro <- us
+
+# change to lower case
+us.choro$USAState <- tolower(us.choro$USAState)

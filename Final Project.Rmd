@@ -136,7 +136,25 @@ world.choro.cases <- world.choro %>%
   dplyr::rename(region = `Country,Other`, value = TotalCases)
 
 country_choropleth(world.choro.cases,
-                   title = "Confirmed Cases of COVID-19",
-                   legend = "Number of Cases")
+                   title = "Confirmed Cases of COVID-19 (All Countries)",
+                   legend = "Number of Cases",
+                   num_colors = 8)
 ```
+One interesting thing I just noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
+
+### United States
+```{r}
+# getting the cases and creating a choroplethr
+us.choro.cases <- us.choro %>%
+  select(USAState, TotalCases) %>%
+  dplyr::rename(region = USAState, value = TotalCases)
+
+
+state_choropleth(us.choro.cases,
+                 title = "Confirmed Cases of COVID-19 (United States)",
+                 legend = "Number of Cases",
+                 num_colors = 8)
+```
+
+
 
