@@ -2,6 +2,8 @@ library(rvest)
 library(tidyr)
 library(dplyr)
 
+source("functions.R")
+
 # scraping bergen county data
 bergen_url <- "https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/"
 bergen <- bergen_url %>%
@@ -29,5 +31,9 @@ bergen <- separate(as.data.frame(bergen), bergen, c("City/Town", "TotalCases"), 
 bergen$`City/Town` <- bergen$`City/Town` %>%
   str_replace_all("\\*", "")
 
-# convert cases from character type to numeric
-bergen$TotalCases <- bergen$TotalCases %>% as.numeric()
+# get the column names for columns with numeric values and clean them
+numCols.bergen <- colnames(bergen)[colnames(bergen) != "City/Town"]
+for (i in 1:length(numCols.bergen)) {
+  bergen <- numCleaner(bergen, numCols.bergen[i], ",")
+  bergen <- numCleaner(bergen, numCols.bergen[i], "\\+")
+}

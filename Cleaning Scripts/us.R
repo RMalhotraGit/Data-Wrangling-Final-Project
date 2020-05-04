@@ -29,7 +29,7 @@ us <- us[(us$USAState != "USA Total") &
            (us$USAState != "Guam") &
            (us$USAState != "Total:"),]
 
-# get the column names for columns with numeric values
+# get the column names for columns with numeric values and clean them
 numCols.us <- colnames(us)[colnames(us) != "USAState" & colnames(us) != "Source"]
 for (i in 1:length(numCols.us)) {
   us <- numCleaner(us, numCols.us[i], ",")

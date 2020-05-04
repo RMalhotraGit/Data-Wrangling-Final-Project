@@ -16,7 +16,7 @@ nj <- nj[(nj$County != "New Jersey Total") &
            (nj$County != "Unassigned") &
            (nj$County != "Total:"),]
 
-# get the column names for columns with numeric values
+# get the column names for columns with numeric values and clean them
 numCols.nj <- colnames(nj)[colnames(nj) != "County"]
 for (i in 1:length(numCols.nj)) {
   nj <- numCleaner(nj, numCols.nj[i], ",")
