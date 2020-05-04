@@ -17,6 +17,7 @@ rm(list = ls())
 library(knitr)
 library(tidyr)
 library(dplyr)
+library(choroplethr)
 ```
 
 ```{r message = FALSE, warning = FALSE}
@@ -29,7 +30,7 @@ source("functions.R")
 
 ```{r}
 # Saving tidy version of datasets as csv files
-
+# DO NOT RUN AGAIN - scripts to clean datasets have been modified since for further 
 #write.csv(world, "Datasets/world.csv", row.names = TRUE)
 #write.csv(us, "Datasets/us.csv", row.names = TRUE)
 #write.csv(nj, "Datasets/nj.csv", row.names = TRUE)
@@ -88,7 +89,7 @@ Note: Only countries with more than 500 total cases were considered.
 
 ## Predicting Number of Deaths
 
-### First, we look at all countries:
+### All Countries:
 ```{r}
 lm.world <- lm.deaths(world)
 coefficients(lm.world)
@@ -104,7 +105,7 @@ cat(print)
 
 Taking the average of the death rate among all countries, we see that is about 0.04, which is about two-thirds the value of the coefficient we got in our linear model. We should expect a disparity in the two values since the linear model only considers the number of cases as a predictor. There are likely several other characteristics within a country that play a role in determining the number of deaths a country will have, namely those having to do with that country's health care and ability to treat those who have been affected.
 
-### Now let's look at just the United States
+### United States
 
 ```{r}
 lm.us <- lm.deaths(us)
@@ -125,3 +126,17 @@ Again, we see that the actual death rate is lower than the estimated one we obta
 ### Conclusion
 
 While we found that the United States is not among the top 10 countries with the highest death rate, we do see that it does have a higher death rate, both in actuality and by our regression model, than compared to the world average. This shows the severity of the pandemic in the country, as well as the country's lack of preparedness for the virus, despite being a superpower.
+
+## Creating Choroplethr Maps
+
+### All Countries
+```{r message = FALSE, warning = FALSE}
+world.choro.cases <- world.choro %>%
+  select(`Country,Other`, TotalCases) %>%
+  dplyr::rename(region = `Country,Other`, value = TotalCases)
+
+country_choropleth(world.choro.cases,
+                   title = "Confirmed Cases of COVID-19",
+                   legend = "Number of Cases")
+```
+
