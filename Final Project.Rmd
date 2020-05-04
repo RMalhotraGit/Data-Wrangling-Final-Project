@@ -21,6 +21,7 @@ library(knitr)
 library(tidyr)
 library(dplyr)
 library(choroplethr)
+library(tidyverse)
 ```
 
 ```{r message = FALSE, warning = FALSE}
@@ -91,8 +92,7 @@ recovered <- world %>%
 kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases)[1:10,])
 ```
 
-|      We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus. 
-*Note: Only countries with more than 500 total cases were considered.
+|      We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
 
 ## Top 10 Death Rate (by Country)
 ```{r}
@@ -105,8 +105,7 @@ deathRate <- world %>%
 kable(select(deathRate, `Country,Other`, DeathRate, TotalCases)[1:10,])
 ```
 
-|      Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases.
-*Note: Only countries with more than 500 total cases were considered.
+|      Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
 
 ## Predicting Number of Deaths
 
@@ -127,7 +126,6 @@ cat(print)
 Taking the average of the death rate among all countries, we see that is about 0.04, which is about two-thirds the value of the coefficient we got in our linear model. We should expect a disparity in the two values since the linear model only considers the number of cases as a predictor. There are likely several other characteristics within a country that play a role in determining the number of deaths a country will have, namely those having to do with that country's health care and ability to treat those who have been affected.
 
 ### United States
-
 ```{r}
 lm.us <- lm.deaths(us)
 coefficients(lm.us)
@@ -152,20 +150,22 @@ Again, we see that the actual death rate is lower than the estimated one we obta
 
 ### All Countries
 ```{r message = FALSE, warning = FALSE}
+# creating a choroplethr for world cases
 world.choro.cases <- world.choro %>%
   select(`Country,Other`, TotalCases) %>%
   dplyr::rename(region = `Country,Other`, value = TotalCases)
 
 country_choropleth(world.choro.cases,
                    title = "Confirmed Cases of COVID-19 (All Countries)",
-                   legend = "Number of Cases",
+                   legend = "Total Number of Cases",
                    num_colors = 8)
 ```
+
 |      One interesting thing I just noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
 
 ### United States
 ```{r}
-# getting the cases and creating a choroplethr
+# creating a choroplethr for US cases
 us.choro.cases <- us.choro %>%
   select(USAState, TotalCases) %>%
   dplyr::rename(region = USAState, value = TotalCases)
@@ -180,13 +180,13 @@ state_choropleth(us.choro.cases,
 |      Looking at the total number of cases in the United States, we can see that some of the states with the most cases are those near the coasts. This could make sense since when people travel into America from foreign countries, they usually tend to go to these coasts. If we looked at an earlier version of this map, say in March, we might see this pattern be more apparent and would indicate where the virus started in the US. However, now, it is more likely that the states with the most cases are likely those with the highest populations. Let's take a look at this by looking at the number of cases per capita.
 
 ```{r}
-# getting the cases per capita and creating a choroplethr
-us.choro.cases <- us.choro %>%
+# creating a choroplethr for US cases per 1 million population
+us.choro.casesper <- us.choro %>%
   select(USAState, CasesPerMillion) %>%
   dplyr::rename(region = USAState, value = CasesPerMillion)
 
 
-state_choropleth(us.choro.cases,
+state_choropleth(us.choro.casesper,
                  title = "Confirmed Cases of COVID-19 (United States)",
                  legend = "Number of Cases (Per 1 Million People)",
                  num_colors = 8)
@@ -195,5 +195,24 @@ state_choropleth(us.choro.cases,
 |      When we adjust the number of cases to be per capita we can see that it is the highest in the northeastern region of the country. Even states like New York, which have a relatively large population, still show the highest number of cases per capita. Also, it is interesting to see how many of the states with a higher number of cases per capita are concentrated in this area. This might suggest how the virus does spread exponentially, especially in a region where there is a lot of travel and interaction.
 |      One difficulty I had with creating this choroplethr, that seemed more of an issue with R, was the name of the column for the number of cases per 1 million people. Originally, the name of the column was "Tot Cases/1M pop" but when I tried to pass this name into the "dplyr" rename function, it would not work. I tried `Tot Cases/1M pop` and `Tot Cases/1M pop` as well and neither worked. I think this may have happened because the website used some kind of formatting for the space in between "Tot" and "Cases/1M", so to fix this, I renamed the column to "CasesPerMillion" in the choroplethr version of the dataset.
 
+## Focusing on New Jersey
 
+### All Counties
+```{r}
+# create ggplot for cases in NJ counties
+nj %>% ggplot(aes(x = reorder(County, -TotalCases), y = TotalCases)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  geom_text(aes(label=TotalCases), vjust=-0.5, size=2.5) +
+  xlab("County") + ylab("Total Number of Cases") + ggtitle("COVID-19 Cases by NJ Counties") +
+  theme(axis.text.x = element_text(size = 10, angle = 60, hjust = 1))
+```
+
+|      Looking at this graph, we can see the New Jersey counties with the highest number of cases. We see that the top 6 counties range from about 12,700 (Middlesex) to 16,500 (Hudson) cases. Then, we see a sharp drop to the county with the 7th most cases, which is Ocean county with only about 7,000 cases. The graph is fairly skewed to the right showing the relatively large disparity within the state. Bergen county, which is where I live, has been leading the state for the number of cases ever since the initial outbreak and was very far ahead of the other counties. However, as of the day I am writing this, Hudson counted has surpassed Bergen county for the most number of cases.
+|      Initially, I wanted to make a choroplethr map for New Jersey. My plan was to use the "county_choroplethr" function with this dataset, and then zoom in on New Jersey to get a county map of just the state. However, when I ran the code, I got the following error: \hfill\break "Error in approx(cum, xx, xout = (1:g) * nnm/g, method = "constant", rule = 2, : zero non-NA points"
+|      I checked my data again and there no NA values. I tried searching online for a solution and came across a couple threads where people had a similar issue but nothing having to do with choroplethr maps, so I went with this graph, which I feel does a good job at exploring the number of cases by county in the state.
+
+### Bergen County
+```{r}
+
+```
 

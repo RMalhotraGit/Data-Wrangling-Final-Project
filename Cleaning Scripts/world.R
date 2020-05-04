@@ -43,7 +43,7 @@ world.choro$`Country,Other` <- tolower(world.choro$`Country,Other`)
 # change country names to match those in choroplethr
 world.choro$`Country,Other`[world.choro$`Country,Other` == "usa"] <- "united states of america"
 world.choro$`Country,Other`[world.choro$`Country,Other` == "uk"] <- "united kingdom"
-world.choro$`Country,Other`[world.choro$`Country,Other` == "s. koera"] <- "south korea"
+world.choro$`Country,Other`[world.choro$`Country,Other` == "s. korea"] <- "south korea"
 world.choro$`Country,Other`[world.choro$`Country,Other` == "czechia"] <- "czech republic"
 world.choro$`Country,Other`[world.choro$`Country,Other` == "serbia"] <- "republic of serbia"
 world.choro$`Country,Other`[world.choro$`Country,Other` == "uae"] <- "united arab emirates"
