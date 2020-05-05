@@ -79,7 +79,7 @@ kable(select(bergen, `City/Town`, TotalCases)[1:5,])
 
 ## Top 10 Recovery Rate (by Country)
 ```{r}
-recovered <- world %>%
+recoveryRate <- world %>%
   filter(TotalCases > 500) %>%  # adding a filter on our data
   group_by(`Country,Other`, TotalCases) %>%
   summarize(RecoveryRate = TotalRecovered/TotalCases) %>% # use recovery rate for a better measure
@@ -102,6 +102,25 @@ kable(select(deathRate, `Country,Other`, DeathRate, TotalCases)[1:10,])
 ```
 
 |        Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
+
+## Relating Serious Cases to Death Rate
+|        The dataset for the countries has a column which gives the number of serious or critical cases. What I want to explore is if the proportion of cases that are classified as serious or critical cases is related to the death rate. There will be some cases that are considered serious or critical where people will recover, and there will also be non-serious or non-critical cases where people will not recover, so it is not excactly the same. However, I want to take a look at the countries with the highest death rates and see if the same countries are the ones with the highest proportion of serious or critical cases.
+|        To do this, we'll create a new data frame which contains the country and this proportion, which will be defined as the number of serious or critical cases divided by the number of active cases. Then, we can join this data frame with the death rate data frame and compare the two values.
+
+```{r}
+seriousRate <- world %>%
+  filter(TotalCases > 500) %>%  # adding a filter to our data
+  group_by(`Country,Other`) %>%
+  summarize(PropOfSerious = `Serious,Critical`/ActiveCases) %>%
+  arrange(desc(PropOfSerious))
+
+# do both joins so we can order by both rates
+left_join(deathRate, seriousRate) %>% head(15)
+right_join(deathRate, seriousRate) %>% head(15)
+```
+
+|        The above data frames show the top 15 countries, first by death rate and then by proportion of serious or critical cases. We can see that the only country that shows up in both is Mexico, which suggests that the proportio of serious or critical cases does not tell us much about a country's death rate. This is a bit unexpected since we would assume that the more serious or critical cases a country has, the more people will die. However, it could be that there is some lag. As the coronavirus reaches its peak, we will have a large number of cases that may not exactly be in line with the number of deaths that there "should be", that is, the deaths must come after the cases. So, it could be that there will be a time will the two will be more strongly correlated.
+|        Also, another factor to consider is that classifying a case as serious or critical can be a bit subjective, especially when each country and hospital has their own guidelines. Unless there is an objective and universal way to classify a case as such, this may not be the best comparison to make.
 
 ## Predicting Number of Deaths
 
@@ -188,7 +207,6 @@ state_choropleth(us.choro.casesper,
 ```
 
 |        When we adjust the number of cases to be per capita we can see that it is the highest in the northeastern region of the country. Even states like New York, which have a relatively large population, still show the highest number of cases per capita. Also, it is interesting to see how many of the states with a higher number of cases per capita are concentrated in this area. This might suggest how the virus does spread exponentially, especially in a region where there is a lot of travel and interaction.
-
 |        One difficulty I had with creating this choroplethr, that seemed more of an issue with R, was the name of the column for the number of cases per 1 million people. Originally, the name of the column was "Tot Cases/1M pop" but when I tried to pass this name into the "dplyr" rename function, it would not work. I tried \`Tot Cases/1M pop\` and \`Tot Cases/1M pop\` as well and neither worked. I think this may have happened because the website used some kind of formatting for the space in between "Tot" and "Cases/1M", so to fix this, I renamed the column to "CasesPerMillion" in the choroplethr version of the dataset.
 
 ## Focusing on New Jersey
@@ -231,11 +249,12 @@ bergen %>% ggplot(aes(x = reorder(`City/Town`, -TotalCases), y = TotalCases)) + 
 ```
 
 |        Similar to the cases by NJ county graph, we saw a very positively skewed graph for the cases in Bergen County. For the top 10 or so city/towns, we see a relatively large gap between the number of cases. After that, we see the cases between the rest of the city/towns is much closer to one another. This really shows where the "hot-spots" are and how the virus can become so widespread in a single area.
-
 |        For this graph, I chose to highlight the top 10 city/towns, since there are a total of 70 in Bergen County. The top 5 city/towns are actually very close to me (within 15 minutes) so it's shocking and a bit scary to see that the virus is so close. I also chose to highlight my town, Dumont. Although it's not in the top 10, it is definitely up there, being at the top of the non "hot-spots". Seeing that our town has almost 300 cases (as I'm writing this) is surprising, since I remember not too long when we had got our first case. With a population of under 18,000, I am also surprised I personally have not heard of anyone in Dumont testing positive, but I'm sure that will change.
-
 |        Creating this graph actually took a fair bit of time. Plotting the data itself was not hard, but one challenge was finding out how to highlight specific points, such as the top 10 city/towns. I researched online and found out that you can add multiple "geom_point" and "geom_text" calls together, which I was unaware of prior. The next challenge was finding out how to add text labels to these points without having them overlap with each other and the points too much. What I did was play around with the size and directional adjustmentsf fielsd of the "geom_text" function until I got a plot that I was satisfied with. I then remembered that there is a function, "ggrepel", which actually takes care of this so I used that instead. However, even with this, there was some overlap, so I made some more manual adjustments with the sizing and padding values to get the final graph.
 
+```{r}
+us
+```
 
 \newpage
 
