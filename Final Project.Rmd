@@ -41,7 +41,7 @@ source("functions.R")
 #write.csv(bergen, "Datasets/bergen.csv", row.names = TRUE)
 ```
 
-# Coronavirus Data Broken Down by Various Regions:
+# Coronavirus Data Analysis by Various Regions
 
 ## World Data
 ```{r}
@@ -66,20 +66,19 @@ kable(select(bergen, `City/Town`, TotalCases)[1:5,])
 *Some columns are omitted from this output of the table.
 
 ## Motivation
-|      The four datasets I chose all have to due with coronavirus data and are subsets of each other. Each one narrows the data down to a location that is within the one before it. The reaosn I chose these datasets is because I live in Bergen County and wanted to explore the severity of the situation, from a data-driven perspective. Bergen County was actually the first county in New Jersey to report a positive case. The town I live in, Dumont, has not been as much of a hot spot as other towns, but the first few cases in New Jersey had been from towns very close to me, such as Teaneck. Bergen County has drastically lead the state for the number of cases and I want to see how things have or have not changed in the towns I live by.
+|        The four datasets I chose all have to due with coronavirus data and are subsets of each other. Each one narrows the data down to a location that is within the one before it. The reaosn I chose these datasets is because I live in Bergen County and wanted to explore the severity of the situation, from a data-driven perspective. Bergen County was actually the first county in New Jersey to report a positive case. The town I live in, Dumont, has not been as much of a hot spot as other towns, but the first few cases in New Jersey had been from towns very close to me, such as Teaneck. Bergen County has drastically lead the state for the number of cases and I want to see how things have or have not changed in the towns I live by.
 
 ## Data Scraping and Cleaning
 
 ### worldometers.info data
-|      The first three datasets were scraped from the https://www.worldometers.info/coronavirus/ website. Luckily, this website offers the data in a tabular format, so scraping it wasn't too much of a challenge. However, the table it has for the world data does not just include countries. It also contains an entry for the Diamond Princess cruise ship, we well as a total count so I had to go through manually and look for entries I wanted to remove. A similar approach was used for the United States data.
-|      The next major cleaning process involved converting the variables (other than location) from a character representation to a numeric. When initially scraped, these values contain commas and some contain plus signs (to indicate the new daily gain of cases and deaths). To fix these, I created a function called "numCleaner" which takes in a database, a column of that database, and a string. The function goes through each value in that column and replaces all instances of the passed in string to a blank space, removing it. I did this so I could reuse this function for each dataset and for both commas and plus signs. One difficulty I came across was passing to the function only the columns with numeric values, since if say, the country column, was passed into the function, it would change each row to NA. To remedy this, I created a vector of strings for each dataset with the column names that were to be passed into the function. Another problem I encountered was getting an error when trying to remove the plus signs. After some research, I found out that '+' is a special character in regex and needs to be escaped so instead of simply passing "+" into my function, I had to pass "\\\\+" instead.
-|      The last bit of cleaning involved changing any numeric NA values to 0, which there were many of due to how the data is written on the website. For example, if a country has no new deaths, or the value has not yet been updated, the entry is left blank, instead of being 0. Luckily, the function I created to change the columns to numerics converts these blank entries to NA. This made it easy to then just convert every NA value to 0. However, I noticed that on the website, for the UK and Netherlands, the "TotalRecovered" column is always labeled "N/A". I believe this is because they have reported they will no longer report this statistic because they feel that the reports given by China are not accurate.
+|        The first three datasets were scraped from the https://www.worldometers.info/coronavirus/ website. Luckily, this website offers the data in a tabular format, so scraping it wasn't too much of a challenge. However, the table it has for the world data does not just include countries. It also contains an entry for the Diamond Princess cruise ship, we well as a total count so I had to go through manually and look for entries I wanted to remove. A similar approach was used for the United States data.
+|        The next major cleaning process involved converting the variables (other than location) from a character representation to a numeric. When initially scraped, these values contain commas and some contain plus signs (to indicate the new daily gain of cases and deaths). To fix these, I created a function called "numCleaner" which takes in a database, a column of that database, and a string. The function goes through each value in that column and replaces all instances of the passed in string to a blank space, removing it. I did this so I could reuse this function for each dataset and for both commas and plus signs. One difficulty I came across was passing to the function only the columns with numeric values, since if say, the country column, was passed into the function, it would change each row to NA. To remedy this, I created a vector of strings for each dataset with the column names that were to be passed into the function. Another problem I encountered was getting an error when trying to remove the plus signs. After some research, I found out that '+' is a special character in regex and needs to be escaped so instead of simply passing "+" into my function, I had to pass "\\\\+" instead.
+|        The last bit of cleaning involved changing any numeric NA values to 0, which there were many of due to how the data is written on the website. For example, if a country has no new deaths, or the value has not yet been updated, the entry is left blank, instead of being 0. Luckily, the function I created to change the columns to numerics converts these blank entries to NA. This made it easy to then just convert every NA value to 0. However, I noticed that on the website, for the UK and Netherlands, the "TotalRecovered" column is always labeled "N/A". I believe this is because they have reported they will no longer report this statistic because they feel that the reports given by China are not accurate.
 
 ### insidernj.com data
-|      To scrape the data for the towns and cities within Bergen County was much more challenging compared to the other datasets. The original source, and several others, I planned on using had no html table or path available when using SelectorGadget. I found other sources that had the data in a table that could be scraped but had a "Show More" option at the end. So when I loaded the data into R, it only showed some of the cities and towns from the full table and I was unable to find a way to get all the data.
-|      I finally was able to find data at https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/ which is a news article containing the number of cases for each town and city in Bergen County. However, the data was not stored as a table, however I found a node labeled "p" using SelectorGadget which gave each sentence in the article as a entry into a character vector. So now, what I had was a vector where the first few entries were some text, followed by lines containing the information I wanted as: "City/Town: Cases", and then some more text. What I noticed was that the reported cases was given in alphabetical order, so my approach was to find the index of the first city or town, which happened to be Allendale. Then, I got the index of the last city or town by adding 69 to this value (since there are a total of 70 cities and towns in Bergen County).
-|      I now had a vector of the cities and towns but needed to get this into a data frame. To do so, I made use of the separate function, passing in the vector as a data frame, since the city or town is separated from the number of cases in each by a colon, ":". Having the data separated into columns, I was mostly done. The last couple of steps involved using the "str_replace_all" to get rid of the "*" which sometimes appears in the "City/Town" column, and then converting the cases column from a character type to a numeric.
-
+|        To scrape the data for the towns and cities within Bergen County was much more challenging compared to the other datasets. The original source, and several others, I planned on using had no html table or path available when using SelectorGadget. I found other sources that had the data in a table that could be scraped but had a "Show More" option at the end. So when I loaded the data into R, it only showed some of the cities and towns from the full table and I was unable to find a way to get all the data.
+|        I finally was able to find data at https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/ which is a news article containing the number of cases for each town and city in Bergen County. However, the data was not stored as a table, however I found a node labeled "p" using SelectorGadget which gave each sentence in the article as a entry into a character vector. So now, what I had was a vector where the first few entries were some text, followed by lines containing the information I wanted as: "City/Town: Cases", and then some more text. What I noticed was that the reported cases was given in alphabetical order, so my approach was to find the index of the first city or town, which happened to be Allendale. Then, I got the index of the last city or town by adding 69 to this value (since there are a total of 70 cities and towns in Bergen County).
+|        I now had a vector of the cities and towns but needed to get this into a data frame. To do so, I made use of the separate function, passing in the vector as a data frame, since the city or town is separated from the number of cases in each by a colon, ":". Having the data separated into columns, I was mostly done. The last couple of steps involved using the "str_replace_all" to get rid of the "*" which sometimes appears in the "City/Town" column, and then converting the cases column from a character type to a numeric.
 
 ## Top 10 Recovery Rate (by Country)
 ```{r}
@@ -92,7 +91,7 @@ recovered <- world %>%
 kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases)[1:10,])
 ```
 
-|      We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
+|        We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
 
 ## Top 10 Death Rate (by Country)
 ```{r}
@@ -105,17 +104,17 @@ deathRate <- world %>%
 kable(select(deathRate, `Country,Other`, DeathRate, TotalCases)[1:10,])
 ```
 
-|      Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
+|        Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
 
 ## Predicting Number of Deaths
 
-### All Countries:
+### All Countries
 ```{r}
 lm.world <- lm.deaths(world)
 coefficients(lm.world)
 ```
 
-Using a naive approach, we construct a univariate linear model where the response is the total number of deaths and the predictor is the total number of cases. Looking at the coefficient for the total cases, we see it is about 0.064. That is, for every new case, we expect the number of deaths to increase by 0.064. In other words, we can say that the death rate is around 6.4%. However, let's get the death rate for each country, and compare its average to this value.
+|        Using a naive approach, we construct a univariate linear model where the response is the total number of deaths and the predictor is the total number of cases. Looking at the coefficient for the total cases, we see it is about 0.064. That is, for every new case, we expect the number of deaths to increase by 0.064. In other words, we can say that the death rate is around 6.4%. However, let's get the death rate for each country, and compare its average to this value.
 
 ```{r}
 AverageDeathRate.world <- mean(deathRate$DeathRate)
@@ -123,7 +122,7 @@ print <- paste(c("The average death rate among all countries is", AverageDeathRa
 cat(print)
 ```
 
-Taking the average of the death rate among all countries, we see that is about 0.04, which is about two-thirds the value of the coefficient we got in our linear model. We should expect a disparity in the two values since the linear model only considers the number of cases as a predictor. There are likely several other characteristics within a country that play a role in determining the number of deaths a country will have, namely those having to do with that country's health care and ability to treat those who have been affected.
+|        Taking the average of the death rate among all countries, we see that is about 0.04, which is about two-thirds the value of the coefficient we got in our linear model. We should expect a disparity in the two values since the linear model only considers the number of cases as a predictor. There are likely several other characteristics within a country that play a role in determining the number of deaths a country will have, namely those having to do with that country's health care and ability to treat those who have been affected.
 
 ### United States
 ```{r}
@@ -131,7 +130,7 @@ lm.us <- lm.deaths(us)
 coefficients(lm.us)
 ```
 
-We get the coefficient for the total cases to be about 0.074 which implies that for every new case in the United States, we expect the number of deaths to increase by about 0.074, that is a death rate of 7.4%. This value is about 0.01 greater than the coefficient for the model for all countries. Now, let's compare this value to the United State's actual death rate.
+|        We get the coefficient for the total cases to be about 0.074 which implies that for every new case in the United States, we expect the number of deaths to increase by about 0.074, that is a death rate of 7.4%. This value is about 0.01 greater than the coefficient for the model for all countries. Now, let's compare this value to the United State's actual death rate.
 
 ```{r}
 USA <- world %>%
@@ -140,11 +139,10 @@ print <- paste(c("The average death rate among all countries is", USA$TotalDeath
 cat(print)
 ```
 
-Again, we see that the actual death rate is lower than the estimated one we obtained from the linear regression model, likely due to other covariates playing a role in the number of cases that result in death.
+|        Again, we see that the actual death rate is lower than the estimated one we obtained from the linear regression model, likely due to other covariates playing a role in the number of cases that result in death.
 
 ### Conclusion
-
-|      While we found that the United States is not among the top 10 countries with the highest death rate, we do see that it does have a higher death rate, both in actuality and by our regression model, than compared to the world average. This shows the severity of the pandemic in the country, as well as the country's lack of preparedness for the virus, despite being a superpower.
+|        While we found that the United States is not among the top 10 countries with the highest death rate, we do see that it does have a higher death rate, both in actuality and by our regression model, than compared to the world average. This shows the severity of the pandemic in the country, as well as the country's lack of preparedness for the virus, despite being a superpower.
 
 ## Creating Choroplethr Maps
 
@@ -161,7 +159,7 @@ country_choropleth(world.choro.cases,
                    num_colors = 8)
 ```
 
-|      One interesting thing I just noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
+|        One interesting thing I just noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
 
 ### United States
 ```{r}
@@ -177,7 +175,7 @@ state_choropleth(us.choro.cases,
                  num_colors = 8)
 ```
 
-|      Looking at the total number of cases in the United States, we can see that some of the states with the most cases are those near the coasts. This could make sense since when people travel into America from foreign countries, they usually tend to go to these coasts. If we looked at an earlier version of this map, say in March, we might see this pattern be more apparent and would indicate where the virus started in the US. However, now, it is more likely that the states with the most cases are likely those with the highest populations. Let's take a look at this by looking at the number of cases per capita.
+|        Looking at the total number of cases in the United States, we can see that some of the states with the most cases are those near the coasts. This could make sense since when people travel into America from foreign countries, they usually tend to go to these coasts. If we looked at an earlier version of this map, say in March, we might see this pattern be more apparent and would indicate where the virus started in the US. However, now, it is more likely that the states with the most cases are likely those with the highest populations. Let's take a look at this by looking at the number of cases per capita.
 
 ```{r}
 # creating a choroplethr for US cases per 1 million population
@@ -192,8 +190,9 @@ state_choropleth(us.choro.casesper,
                  num_colors = 8)
 ```
 
-|      When we adjust the number of cases to be per capita we can see that it is the highest in the northeastern region of the country. Even states like New York, which have a relatively large population, still show the highest number of cases per capita. Also, it is interesting to see how many of the states with a higher number of cases per capita are concentrated in this area. This might suggest how the virus does spread exponentially, especially in a region where there is a lot of travel and interaction.
-|      One difficulty I had with creating this choroplethr, that seemed more of an issue with R, was the name of the column for the number of cases per 1 million people. Originally, the name of the column was "Tot Cases/1M pop" but when I tried to pass this name into the "dplyr" rename function, it would not work. I tried `Tot Cases/1M pop` and `Tot Cases/1M pop` as well and neither worked. I think this may have happened because the website used some kind of formatting for the space in between "Tot" and "Cases/1M", so to fix this, I renamed the column to "CasesPerMillion" in the choroplethr version of the dataset.
+|        When we adjust the number of cases to be per capita we can see that it is the highest in the northeastern region of the country. Even states like New York, which have a relatively large population, still show the highest number of cases per capita. Also, it is interesting to see how many of the states with a higher number of cases per capita are concentrated in this area. This might suggest how the virus does spread exponentially, especially in a region where there is a lot of travel and interaction.
+
+|        One difficulty I had with creating this choroplethr, that seemed more of an issue with R, was the name of the column for the number of cases per 1 million people. Originally, the name of the column was "Tot Cases/1M pop" but when I tried to pass this name into the "dplyr" rename function, it would not work. I tried `Tot Cases/1M pop` and `Tot Cases/1M pop` as well and neither worked. I think this may have happened because the website used some kind of formatting for the space in between "Tot" and "Cases/1M", so to fix this, I renamed the column to "CasesPerMillion" in the choroplethr version of the dataset.
 
 ## Focusing on New Jersey
 
@@ -202,17 +201,42 @@ state_choropleth(us.choro.casesper,
 # create ggplot for cases in NJ counties
 nj %>% ggplot(aes(x = reorder(County, -TotalCases), y = TotalCases)) +
   geom_bar(stat = "identity", fill = "darkblue") +
-  geom_text(aes(label=TotalCases), vjust=-0.5, size=2.5) +
+  geom_text(aes(label = TotalCases), vjust = -0.5, size = 2.5) +
   xlab("County") + ylab("Total Number of Cases") + ggtitle("COVID-19 Cases by NJ Counties") +
   theme(axis.text.x = element_text(size = 10, angle = 60, hjust = 1))
 ```
 
-|      Looking at this graph, we can see the New Jersey counties with the highest number of cases. We see that the top 6 counties range from about 12,700 (Middlesex) to 16,500 (Hudson) cases. Then, we see a sharp drop to the county with the 7th most cases, which is Ocean county with only about 7,000 cases. The graph is fairly skewed to the right showing the relatively large disparity within the state. Bergen county, which is where I live, has been leading the state for the number of cases ever since the initial outbreak and was very far ahead of the other counties. However, as of the day I am writing this, Hudson counted has surpassed Bergen county for the most number of cases.
-|      Initially, I wanted to make a choroplethr map for New Jersey. My plan was to use the "county_choroplethr" function with this dataset, and then zoom in on New Jersey to get a county map of just the state. However, when I ran the code, I got the following error: \hfill\break "Error in approx(cum, xx, xout = (1:g) * nnm/g, method = "constant", rule = 2, : zero non-NA points"
-|      I checked my data again and there no NA values. I tried searching online for a solution and came across a couple threads where people had a similar issue but nothing having to do with choroplethr maps, so I went with this graph, which I feel does a good job at exploring the number of cases by county in the state.
+|        Looking at this graph, we can see the New Jersey counties with the highest number of cases. We see that the top 6 counties range from about 12,700 (Middlesex) to 16,500 (Hudson) cases. Then, we see a sharp drop to the county with the 7th most cases, which is Ocean county with only about 7,000 cases. The graph is fairly skewed to the right showing the relatively large disparity within the state. Bergen county, which is where I live, has been leading the state for the number of cases ever since the initial outbreak and was very far ahead of the other counties. However, as of the day I am writing this, Hudson counted has surpassed Bergen county for the most number of cases.
+|        Initially, I wanted to make a choroplethr map for New Jersey. My plan was to use the "county_choroplethr" function with this dataset, and then zoom in on New Jersey to get a county map of just the state. However, when I ran the code, I got the following error: \hfill\break "Error in approx(cum, xx, xout = (1:g) * nnm/g, method = "constant", rule = 2, : zero non-NA points"
+|        I checked my data again and there were no NA values. I tried searching online for a solution and came across a couple threads where people had a similar issue but nothing having to do with choroplethr maps, so I went with this graph, which I feel does a good job at exploring the number of cases by county in the state.
 
 ### Bergen County
 ```{r}
+library(ggrepel)
+# we want to label the top 10 city/towns so we can point them out
+bergen.top10 <- bergen %>%
+  arrange(desc(TotalCases)) %>%
+  head(10)
 
+# save town of Dumont so we can point it out
+bergen.dumont <- bergen %>%
+  filter(`City/Town` == "Dumont")
+
+# create ggplot for cases in city and towns in Bergen County
+bergen %>% ggplot(aes(x = reorder(`City/Town`, -TotalCases), y = TotalCases)) + geom_point() +
+  geom_point(aes(x = `City/Town`), color = "red", data = bergen.top10) +
+  geom_point(aes(x = `City/Town`), color = "darkorange", data = bergen.dumont) +
+  geom_text_repel(data = bergen.top10, label = bergen.top10$`City/Town`, size = 3, box.padding = 0.9, point.padding = 0.15) +
+  geom_text_repel(data = bergen.dumont, label = bergen.dumont$`City/Town`, size = 3, box.padding = 0.9, point.padding = 0.15) +
+  xlab("County") + ylab("Total Number of Cases") + ggtitle("COVID-19 Cases in Bergen County") +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank())
 ```
+
+|        Similar to the cases by NJ county graph, we saw a very positively skewed graph for the cases in Bergen County. For the top 10 or so city/towns, we see a relatively large gap between the number of cases. After that, we see the cases between the rest of the city/towns is much closer to one another. This really shows where the "hot-spots" are and how the virus can become so widespread in a single area.
+
+|        For this graph, I chose to highlight the top 10 city/towns, since there are a total of 70 in Bergen County. The top 5 city/towns are actually very close to me (within 15 minutes) so it's shocking and a bit scary to see that the virus is so close. I also chose to highlight my town, Dumont. Although it's not in the top 10, it is definitely up there, being at the top of the non "hot-spots". Seeing that our town has almost 300 cases (as I'm writing this) is surprising, since I remember not too long when we had got our first case. With a population of under 18,000, I am also surprised I personally have not heard of anyone in Dumont testing positive, but I'm sure that will change.
+
+|        Creating this graph actually took a fair bit of time. Plotting the data itself was not hard, but one challenge was finding out how to highlight specific points, such as the top 10 city/towns. I researched online and found out that you can add multiple "geom_point" and "geom_text" calls together, which I was unaware of prior. The next challenge was finding out how to add text labels to these points without having them overlap with each other and the points too much. What I did was play around with the size and directional adjustmentsf fielsd of the "geom_text" function until I got a plot that I was satisfied with. I then remembered that there is a function, "ggrepel", which actually takes care of this so I used that instead. However, even with this, there was some overlap, so I made some more manual adjustments with the sizing and padding values to get the final graph.
+
 
