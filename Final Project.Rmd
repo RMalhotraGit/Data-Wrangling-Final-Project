@@ -85,7 +85,7 @@ recoveryRate <- world %>%
   summarize(RecoveryRate = TotalRecovered/TotalCases) %>% # use recovery rate for a better measure
   arrange(desc(RecoveryRate))
 
-kable(select(recovered, `Country,Other`, RecoveryRate, TotalCases)[1:10,])
+kable(select(recoveryRate, `Country,Other`, RecoveryRate, TotalCases)[1:10,])
 ```
 
 |        We see China is among the countries with the best recovery rate, which we may expect due to their rapid response and strict restrictions. However, we see Iceland with the greatest recovery rate which is surprising since not many people talk about its success at containing the virus. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
@@ -101,13 +101,13 @@ deathRate <- world %>%
 kable(select(deathRate, `Country,Other`, DeathRate, TotalCases)[1:10,])
 ```
 
-|        Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having both the most deaths and cases. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
+|        Among the top countries with the highest death rates, we see many european countries, including Italy and France. We expect to see them as they have been getting a lot of attention in the news due to the severity of the virus in their respective countries. However, interestingly, we do not need see the United States among the countries with the highest death rates, despite having the most deaths. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
 
 ## Relating Serious Cases to Death Rate
 |        The dataset for the countries has a column which gives the number of serious or critical cases. What I want to explore is if the proportion of cases that are classified as serious or critical cases is related to the death rate. There will be some cases that are considered serious or critical where people will recover, and there will also be non-serious or non-critical cases where people will not recover, so it is not excactly the same. However, I want to take a look at the countries with the highest death rates and see if the same countries are the ones with the highest proportion of serious or critical cases.
 |        To do this, we'll create a new data frame which contains the country and this proportion, which will be defined as the number of serious or critical cases divided by the number of active cases. Then, we can join this data frame with the death rate data frame and compare the two values.
 
-```{r}
+```{r message = FALSE}
 seriousRate <- world %>%
   filter(TotalCases > 500) %>%  # adding a filter to our data
   group_by(`Country,Other`) %>%
@@ -115,26 +115,28 @@ seriousRate <- world %>%
   arrange(desc(PropOfSerious))
 
 # do both joins so we can order by both rates
-left_join(deathRate, seriousRate) %>% head(15)
-right_join(deathRate, seriousRate) %>% head(15)
+deathRate.order <- left_join(deathRate, seriousRate) %>% head(15)
+seriousRate.order <- left_join(seriousRate, deathRate) %>% head(15)
+
+kable(select(deathRate.order, `Country,Other`, DeathRate, PropOfSerious))
+kable(select(seriousRate.order, `Country,Other`, PropOfSerious, DeathRate))
 ```
 
 |        The above data frames show the top 15 countries, first by death rate and then by proportion of serious or critical cases. We can see that the only country that shows up in both is Mexico, which suggests that the proportio of serious or critical cases does not tell us much about a country's death rate. This is a bit unexpected since we would assume that the more serious or critical cases a country has, the more people will die. However, it could be that there is some lag. As the coronavirus reaches its peak, we will have a large number of cases that may not exactly be in line with the number of deaths that there "should be", that is, the deaths must come after the cases. So, it could be that there will be a time will the two will be more strongly correlated.
-|        Also, another factor to consider is that classifying a case as serious or critical can be a bit subjective, especially when each country and hospital has their own guidelines. Unless there is an objective and universal way to classify a case as such, this may not be the best comparison to make.
+|        Also, another factor to consider is that classifying a case as serious or critical can be a bit subjective, especially when each country and hospital has their own guidelines. Unless there is an objective and universal way to classify a case as such, this may not be the best comparison to make. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
 
 ## Predicting Number of Deaths
 
 ### All Countries
 ```{r}
-lm.world <- lm.deaths(world)
-coefficients(lm.world)
+lm.world.deaths <- lm.deaths(world)
+coefficients(lm.world.deaths)[2]
 ```
 
 |        Using a naive approach, we construct a univariate linear model where the response is the total number of deaths and the predictor is the total number of cases. Looking at the coefficient for the total cases, we see it is about 0.064. That is, for every new case, we expect the number of deaths to increase by 0.064. In other words, we can say that the death rate is around 6.4%. However, let's get the death rate for each country, and compare its average to this value.
 
 ```{r}
-AverageDeathRate.world <- mean(deathRate$DeathRate)
-print <- paste(c("The average death rate among all countries is", AverageDeathRate.world), sep = " ")
+print <- paste(c("The average death rate among all countries is", mean(deathRate$DeathRate)), sep = " ")
 cat(print)
 ```
 
@@ -142,8 +144,8 @@ cat(print)
 
 ### United States
 ```{r}
-lm.us <- lm.deaths(us)
-coefficients(lm.us)
+lm.us.deaths <- lm.deaths(us)
+coefficients(lm.us.deaths)[2]
 ```
 
 |        We get the coefficient for the total cases to be about 0.074 which implies that for every new case in the United States, we expect the number of deaths to increase by about 0.074, that is a death rate of 7.4%. This value is about 0.01 greater than the coefficient for the model for all countries. Now, let's compare this value to the United State's actual death rate.
@@ -151,7 +153,8 @@ coefficients(lm.us)
 ```{r}
 USA <- world %>%
   filter(`Country,Other` == "USA")
-print <- paste(c("The average death rate among all countries is", USA$TotalDeaths/USA$TotalCases), sep = " ")
+
+print <- paste(c("The average death rate in the United States is", USA$TotalDeaths/USA$TotalCases), sep = " ")
 cat(print)
 ```
 
@@ -159,6 +162,57 @@ cat(print)
 
 ### Conclusion
 |        While we found that the United States is not among the top 10 countries with the highest death rate, we do see that it does have a higher death rate, both in actuality and by our regression model, than compared to the world average. This shows the severity of the pandemic in the country, as well as the country's lack of preparedness for the virus, despite being a superpower.
+
+## Predicting Number of Cases
+
+### All Countries
+```{r}
+lm.world.cases <- lm.cases(world)
+coefficients(lm.world.cases)[2]
+```
+
+|        Again, we use a naive approach, but this time to predict the number of cases based on the number of tests. We see that the coefficient is about 0.12. That is, for each new test, it will result in about 0.12 new cases. We can think of this as a positivity test rate. So, based on the linear model, there is about a 12% global positivity rate. Now, let's see how this compares if we take the average of this rate, which will be defined as the number of cases divided by the number of tests.
+
+```{r}
+# filter out countries with 0 tests since we cannot divide by 0
+noZeroes.world <- world %>%
+  filter(TotalTests > 0)
+
+print <- paste(c("The average positivity rate among all countries is", mean(noZeroes.world$TotalCases/noZeroes.world$TotalTests), sep = " "))
+cat(print)
+```
+
+|        We see that the average of the actual positivity rate is about 0.08, which is about two-thirds of the value we obtained from the linear model. A lower value for this rate is actually "better" since it implies that there are less positive cases per test. Thus, this likely suggests that there are other factors, other than the number of tests, which are resulting in a lesser value. One major factor, that is not available in the dataset and is hard to quantify, is the degree of social distancing a country is practicing. Some others are the overall level of health and age of the population.
+
+### United States
+```{r}
+lm.us.cases <- lm.cases(us)
+coefficients(lm.us.cases)[2]
+```
+
+|        Looking at just the United States, the coefficient for the total tests is much higher. This model implies that for every new test, it will result in 0.22 cases. Or, in other words, the United States has a 22% positvity test rate. Again, let's compare this to the average rate among all states.
+
+```{r}
+print <- paste(c("The average positivity rate in the United States is", mean(USA$TotalCases/USA$TotalTests), sep = " "))
+cat(print)
+```
+
+|        Similar to when we looked at all countries, the actual positivity rate is about two-thirds the value of the positivity rate predicted by the linear model. Since it is similar to all countries, it suggests that the other factors involved in the positivity rate are not much different for the United States compared to the rest of the world. This may suggest that the country's social distancing could be on a similar level to others, but again, there are other factors, such as health and age to consider.
+
+### Top 10 Positivity Rate (by Country)
+```{r}
+# data frame of positivity rate for world data
+positivityRate <- world %>%
+  filter(TotalCases > 500 & TotalTests > 0) %>%  # adding a filter to our data
+  group_by(`Country,Other`) %>%
+  summarize(PositivityRate = TotalCases/TotalTests) %>%
+  arrange(desc(PositivityRate))
+
+kable(select(positivityRate, `Country,Other`, PositivityRate)[1:10,])
+```
+
+|        Looking at the countries with the greatest positivity rates, I am quite surprised. We see that Algeria is an outlier with a positivity rate of about 72% and the rest of the top 10 countries having a rate of at least 22%. I am also surprised to not see the United States make the top 10, as they have the most cases. However, it could be that there are not within the top 10 since they may be conducting a lot of tests.
+|        Another factor to consider is the restrictions countries have placed on testing. Since it is expected that many people have the virus, countries are not able to test everyone. Thus, only those who qualify to get tested are getting actually getting tested. These qualifications tend to be showing clear symptoms and the severity of one's condition. So, it could be the case that the countries with higher positivity rates are also those with stricter testing restrictions, since that would mean they only normally test people who are much more likely to have the virus. \hfill\break \hfill\break *Note: Only countries with more than 500 total cases were considered.
 
 ## Creating Choroplethr Maps
 
@@ -175,7 +229,7 @@ country_choropleth(world.choro.cases,
                    num_colors = 8)
 ```
 
-|        One interesting thing I just noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
+|        One interesting thing I noticed from looking at this map is that the number of cases in the continent of Africa are very low. This is quite the contrast from the Ebola outbreak of 2014 where Africa was the most affected.
 
 ### United States
 ```{r}
@@ -251,10 +305,6 @@ bergen %>% ggplot(aes(x = reorder(`City/Town`, -TotalCases), y = TotalCases)) + 
 |        Similar to the cases by NJ county graph, we saw a very positively skewed graph for the cases in Bergen County. For the top 10 or so city/towns, we see a relatively large gap between the number of cases. After that, we see the cases between the rest of the city/towns is much closer to one another. This really shows where the "hot-spots" are and how the virus can become so widespread in a single area.
 |        For this graph, I chose to highlight the top 10 city/towns, since there are a total of 70 in Bergen County. The top 5 city/towns are actually very close to me (within 15 minutes) so it's shocking and a bit scary to see that the virus is so close. I also chose to highlight my town, Dumont. Although it's not in the top 10, it is definitely up there, being at the top of the non "hot-spots". Seeing that our town has almost 300 cases (as I'm writing this) is surprising, since I remember not too long when we had got our first case. With a population of under 18,000, I am also surprised I personally have not heard of anyone in Dumont testing positive, but I'm sure that will change.
 |        Creating this graph actually took a fair bit of time. Plotting the data itself was not hard, but one challenge was finding out how to highlight specific points, such as the top 10 city/towns. I researched online and found out that you can add multiple "geom_point" and "geom_text" calls together, which I was unaware of prior. The next challenge was finding out how to add text labels to these points without having them overlap with each other and the points too much. What I did was play around with the size and directional adjustmentsf fielsd of the "geom_text" function until I got a plot that I was satisfied with. I then remembered that there is a function, "ggrepel", which actually takes care of this so I used that instead. However, even with this, there was some overlap, so I made some more manual adjustments with the sizing and padding values to get the final graph.
-
-```{r}
-us
-```
 
 \newpage
 
