@@ -3,9 +3,6 @@ title: "Final Project"
 author: "Rahul Malhotra"
 date: "4/22/2020"
 output: pdf_document
-header-includes:
-  - \setlength{\parindent}{4em}
-  - \setlength{\parskip}{0em}
 ---
 
 ```{r setup, include=FALSE}
@@ -192,7 +189,7 @@ state_choropleth(us.choro.casesper,
 
 |        When we adjust the number of cases to be per capita we can see that it is the highest in the northeastern region of the country. Even states like New York, which have a relatively large population, still show the highest number of cases per capita. Also, it is interesting to see how many of the states with a higher number of cases per capita are concentrated in this area. This might suggest how the virus does spread exponentially, especially in a region where there is a lot of travel and interaction.
 
-|        One difficulty I had with creating this choroplethr, that seemed more of an issue with R, was the name of the column for the number of cases per 1 million people. Originally, the name of the column was "Tot Cases/1M pop" but when I tried to pass this name into the "dplyr" rename function, it would not work. I tried `Tot Cases/1M pop` and `Tot Cases/1M pop` as well and neither worked. I think this may have happened because the website used some kind of formatting for the space in between "Tot" and "Cases/1M", so to fix this, I renamed the column to "CasesPerMillion" in the choroplethr version of the dataset.
+|        One difficulty I had with creating this choroplethr, that seemed more of an issue with R, was the name of the column for the number of cases per 1 million people. Originally, the name of the column was "Tot Cases/1M pop" but when I tried to pass this name into the "dplyr" rename function, it would not work. I tried \`Tot Cases/1M pop\` and \`Tot Cases/1M pop\` as well and neither worked. I think this may have happened because the website used some kind of formatting for the space in between "Tot" and "Cases/1M", so to fix this, I renamed the column to "CasesPerMillion" in the choroplethr version of the dataset.
 
 ## Focusing on New Jersey
 
@@ -240,3 +237,15 @@ bergen %>% ggplot(aes(x = reorder(`City/Town`, -TotalCases), y = TotalCases)) + 
 |        Creating this graph actually took a fair bit of time. Plotting the data itself was not hard, but one challenge was finding out how to highlight specific points, such as the top 10 city/towns. I researched online and found out that you can add multiple "geom_point" and "geom_text" calls together, which I was unaware of prior. The next challenge was finding out how to add text labels to these points without having them overlap with each other and the points too much. What I did was play around with the size and directional adjustmentsf fielsd of the "geom_text" function until I got a plot that I was satisfied with. I then remembered that there is a function, "ggrepel", which actually takes care of this so I used that instead. However, even with this, there was some overlap, so I made some more manual adjustments with the sizing and padding values to get the final graph.
 
 
+\newpage
+
+# Appendix
+
+## Sources
+
+Dadax. 2020. _worldometers.info_ .https://www.worldometers.info/coronavirus/ \hfill\break
+Insider NJ. 2020, May 2. _insidernj.com_. https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/
+
+## Github
+
+https://github.com/RMalhotraGit/Data-Wrangling-Final-Project
