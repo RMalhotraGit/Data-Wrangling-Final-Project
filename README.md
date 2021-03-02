@@ -12,7 +12,7 @@ world.R - script to clean dataset for countries and other regions
 
 us.R - script to clean dataset for United States
 
-nj.r - script to clean dataset for New Jersey
+nj.R - script to clean dataset for New Jersey
 
 bergen.R - script to clean dataset for Bergen County, NJ
 
