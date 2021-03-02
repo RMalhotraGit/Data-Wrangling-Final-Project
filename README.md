@@ -9,11 +9,18 @@ Final Project.Rmd - R Markdown file used to generate report
 functions.R - script containing functions used in analysis
 
 world.R - script to clean dataset for countries and other regions
+
 us.R - script to clean dataset for United States
+
 nj.r - script to clean dataset for New Jersey
+
 bergen.R - script to clean dataset for Bergen County, NJ
 
+
 world.csv - tidy version of country data
+
 us.csv - tidy version of United States data
+
 nj.csv - tidy version of New Jersey data
+
 bergen.csv - tidy version of Bergen County data
