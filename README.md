@@ -3,6 +3,7 @@ Description: This project takes a look at some statistics for coronavirus data, 
 The first three datasets come from https://www.worldometers.info/coronavirus/ and the last comes from https://www.insidernj.com/bergen-county-town-covid-19-list-15982-cases-total-friday/
 
 Files:
+
 Final Project.Rmd - R Markdown file used to generate report
 
 functions.R - script containing functions used in analysis
